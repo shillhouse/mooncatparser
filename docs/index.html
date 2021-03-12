@@ -1,0 +1,93 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Mooncat Viewer</title>
+  <meta name="author" content="Shillhouse">
+  <meta charset="utf-8">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="HandheldFriendly" content="true">
+  <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, minimal-ui, target-densitydpi=device-dpi">
+  <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.min.css">
+  <style type="text/css">
+	body { text-align:center; padding-top:72px; } 
+  </style>
+</head>
+<body>
+  <input id="catId" type="text" width="32"></input> <a class="btn" href="#" id="activate">View</a>
+  <br /><br />
+  <img id="yourCat" src="" />
+  
+<script type="text/javascript" src="mooncatparser.js"></script>
+<script type="text/javascript">
+function gup(name){
+	name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+	var regexS = "[\\?&]"+name+"=([^&#]*)";
+	var regex = new RegExp(regexS);
+	var results = regex.exec(window.location.href);
+	if (results == null) {
+		return '';
+	} else {
+		return results[1];
+	}
+} // gup() - Get URL Param
+function insertParam(key, value) {
+    key = encodeURIComponent(key);
+    value = encodeURIComponent(value);
+
+    // kvp looks like ['key1=value1', 'key2=value2', ...]
+    var kvp = document.location.search.substr(1).split('&');
+    let i=0;
+
+    for(; i<kvp.length; i++){
+        if (kvp[i].startsWith(key + '=')) {
+            let pair = kvp[i].split('=');
+            pair[1] = value;
+            kvp[i] = pair.join('=');
+            break;
+        }
+    }
+
+    if(i >= kvp.length){
+        kvp[kvp.length] = [key,value].join('=');
+    }
+
+    // can return this or...
+    let params = kvp.join('&');
+
+    // reload page with new params
+    document.location.search = params;
+}
+function generateMoonCatImage(catId, size){
+  size = size || 10;
+  var data = mooncatparser(catId);
+  var canvas = document.createElement("canvas");
+  canvas.width = size * data.length;
+  canvas.height = size * data[1].length;
+  var ctx = canvas.getContext("2d");
+
+  for(var i = 0; i < data.length; i++){
+    for(var j = 0; j < data[i].length; j++){
+      var color = data[i][j];
+      if(color){
+        ctx.fillStyle = color;
+        ctx.fillRect(i * size, j * size, size, size);
+      }
+    }
+  }
+  return canvas.toDataURL();
+}
+var availableCat = gup("catId"); 
+if(availableCat.length > 0) { 
+	var dataUrl = generateMoonCatImage(availableCat); 
+	document.getElementById("yourCat").src = dataUrl; 
+}
+document.getElementById("activate").onclick = function() { 
+	catId = document.getElementById("catId").value; 
+	var dataUrl = generateMoonCatImage(catId); 
+	document.getElementById("yourCat").src = dataUrl; 
+	insertParam("catId",catId); 
+	return false; 
+}
+</script>
+</body>
+</html>
